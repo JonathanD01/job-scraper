@@ -58,8 +58,20 @@ sealed abstract class BaseHelperScraper permits BaseWebScraper {
      * @return          The elements matching the XPath expression.
      * @see             Elements
      */
-    protected Elements getElements(Document doc, String XPath) {
+    protected Elements getElementsFromXPath(Document doc, String XPath) {
         return doc.selectXpath(XPath);
+    }
+
+    /**
+     * Retrieves the {@link Elements} matching the given cssQuery expression from the document.
+     *
+     * @param doc       The HTML document to search for elements.
+     * @param cssQuery  The cssQuery expression to select elements.
+     * @return          The elements matching the cssQuery expression.
+     * @see             Elements
+     */
+    protected Elements getElementsFromCssQuery(Document doc, String cssQuery) {
+        return doc.select(cssQuery);
     }
 
     /**

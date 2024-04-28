@@ -1,10 +1,8 @@
 package no.jobbscraper.restapiclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import no.jobbscraper.Main;
 import no.jobbscraper.argument.Argument;
 import no.jobbscraper.jobpost.JobPost;
 
@@ -67,7 +65,10 @@ public abstract sealed class BaseRestApiClient implements IRestApiClient permits
         return String.format("{\"%s\": [%s] }", requestParam, jsonString);
     }
 
-    protected String getPostUrl() {
-        return String.format("http://%s:%s/%s", this.ip, this.port, path);
+    public String getPostUrl() {
+        if (this.port != null) {
+            return String.format("http://%s:%s/%s", this.ip, this.port, path);
+        }
+        return String.format("https://%s/%s", this.ip, path);
     }
 }

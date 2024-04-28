@@ -2,15 +2,19 @@ package no.jobbscraper.webscraper;
 
 import no.jobbscraper.utils.DateUtils;
 import no.jobbscraper.utils.ElementSearchQuery;
-import no.jobbscraper.webscraper.ArbeidsplassenNavScraper;
-import no.jobbscraper.webscraper.BaseWebScraper;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -250,7 +254,8 @@ public class ArbeidsplassenNavScraperTest {
                 List.of(firstMockElement, firstMockSiblingElement,secondMockElement, secondMockSiblingElement));
 
         // When
-        when(mockDocument.getAllElements()).thenReturn(elements);
+        when(scraper.getElementsFromXPath(mockDocument, "/html/body/div/div/main/article/section[2]/dl"))
+                .thenReturn(elements);
 
         when(firstMockElement.hasClass(parentName)).thenReturn(true);
         when(firstMockSiblingElement.hasClass(childrenName)).thenReturn(true);

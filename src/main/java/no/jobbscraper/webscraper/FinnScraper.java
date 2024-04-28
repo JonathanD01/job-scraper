@@ -15,7 +15,7 @@ public final class FinnScraper extends BaseWebScraper {
 
 
     public FinnScraper() {
-        super(WebsiteURL.FINN_NO, WebsiteURL.FINN_NO_WITH_PAGE, "//article");
+        super("finn", WebsiteURL.FINN_NO, WebsiteURL.FINN_NO_WITH_PAGE, "//article");
     }
 
     @Override
@@ -81,7 +81,7 @@ public final class FinnScraper extends BaseWebScraper {
 
     @Override
     LocalDate extractDeadlineForJobPostFromDoc(Document doc) {
-        Elements elements = this.getElements(doc, "//dl[@class='definition-list']/dt");
+        Elements elements = this.getElementsFromXPath(doc, "//dl[@class='definition-list']/dt");
         if (elements.isEmpty()) {
             logger.warning("Elements list was empty, could not get deadline for job post at " + doc.location());
             return null;
@@ -100,7 +100,7 @@ public final class FinnScraper extends BaseWebScraper {
 
     @Override
     Set<String> extractTagsForJobPostFromDoc(Document doc) {
-        Elements h2Elements = this.getElements(doc, "//section[@class='panel']/h2[@class='u-t3']");
+        Elements h2Elements = this.getElementsFromXPath(doc, "//section[@class='panel']/h2[@class='u-t3']");
 
         for (Element h2Element : h2Elements) {
             if (StringUtils.removeWhitespace(h2Element.ownText()).equalsIgnoreCase("Nøkkelord")) {
@@ -124,32 +124,37 @@ public final class FinnScraper extends BaseWebScraper {
         // then grab the elements own text and add it under as value for
         // the elements own text as key. Only do if the value element have
         // the required class
+
+        Elements elements = getElementsFromCssQuery(doc, "dl.definition-list.definition-list--inline > *");
+        if (elements.isEmpty()) {
+            logger.severe("Elements at dl.definition-list.definition-list--inline > * were empty");
+            return definitionMap;
+        }
+
         Element currentItemHeader = null;
-        for (Element elementInDoc : doc.getAllElements()) {
+        for (Element elementInDoc : elements) {
             if (elementInDoc.tagName().equalsIgnoreCase("dt")) {
                 currentItemHeader = elementInDoc;
             }
 
-            String elementsOwnText = StringUtils.removeTrailingComma(elementInDoc.ownText());
+            String elementsOwnText = elementInDoc.ownText();
 
-            if (StringUtils.isEmpty(elementsOwnText)) {
-                continue;
-            }
-
-            if (Objects.isNull(currentItemHeader) || !elementInDoc.tagName().equalsIgnoreCase("dd")) {
+            if (StringUtils.isEmpty(elementsOwnText) || Objects.isNull(currentItemHeader)) {
                 continue;
             }
 
             String currentItemHeaderText = retrieveProperDefinitionName(currentItemHeader.ownText());
 
-            if (Objects.isNull(currentItemHeaderText)) {
+            if (StringUtils.isEmpty(currentItemHeaderText) || !elementInDoc.tagName().equalsIgnoreCase("dd")) {
                 continue;
             }
+
 
             Set<String> definitions = definitionMap.getOrDefault(currentItemHeaderText, new HashSet<>());
 
             String value = retrieveCorrectValueForKey(currentItemHeaderText,
                     StringUtils.removeTrailingComma(elementsOwnText));
+
             definitions.add(value);
             definitionMap.put(currentItemHeaderText, definitions);
         }

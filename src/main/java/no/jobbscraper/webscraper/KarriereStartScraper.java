@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
 public final class KarriereStartScraper extends BaseWebScraper {
 
     public KarriereStartScraper() {
-        super(WebsiteURL.KARRIERESTART_NO, WebsiteURL.KARRIERESTART_NO_WITH_PAGE, "//div[@id='f-search-results']/div");
+        super("karrierestart", WebsiteURL.KARRIERESTART_NO, WebsiteURL.KARRIERESTART_NO_WITH_PAGE, "//div[@id='f-search-results']/div");
         this.setMaxPage();
     }
 
     KarriereStartScraper(int maxPage) {
-        super(WebsiteURL.KARRIERESTART_NO, WebsiteURL.KARRIERESTART_NO_WITH_PAGE, "//div[@id='f-search-results']/div");
+        super("karrierestart", WebsiteURL.KARRIERESTART_NO, WebsiteURL.KARRIERESTART_NO_WITH_PAGE, "//div[@id='f-search-results']/div");
         super.setMaxPage(maxPage);
     }
 
@@ -103,7 +103,7 @@ public final class KarriereStartScraper extends BaseWebScraper {
 
     @Override
     Set<String> extractTagsForJobPostFromDoc(Document doc) {
-        return this.getElements(doc, "//p[@class='txt job-tags']/a").stream()
+        return this.getElementsFromXPath(doc, "//p[@class='txt job-tags']/a").stream()
                 .map(element -> StringUtils.removeTrailingComma(element.ownText()))
                 .collect(Collectors.toSet());
     }
@@ -117,21 +117,24 @@ public final class KarriereStartScraper extends BaseWebScraper {
         // then grab the elements own text and add it under as value for
         // the elements own text as key. Only do if the value element have
         // the required class
+
+        Elements elements = getElementsFromCssQuery(doc, "div.concrete_facta_item > div");
+
         Element currentItemHeader = null;
-        for (Element elementInDoc : doc.getAllElements()) {
+        for (Element elementInDoc : elements) {
             if (elementInDoc.hasClass("item_header")) {
                 currentItemHeader = elementInDoc;
             }
 
-            String elementsOwnText = elementInDoc.ownText();
+            String elementsOwnText = elementInDoc.text();
 
             if (Objects.isNull(currentItemHeader) || !elementInDoc.hasClass("item_cnt")) {
                 continue;
             }
 
-            String currentItemHeaderText = retrieveProperDefinitionName(currentItemHeader.ownText());
+            String currentItemHeaderText = retrieveProperDefinitionName(currentItemHeader.text());
 
-            if (Objects.isNull(currentItemHeaderText)) {
+            if (Objects.isNull(currentItemHeaderText) || !elementInDoc.hasClass("item_cnt")) {
                 continue;
             }
 
@@ -149,7 +152,7 @@ public final class KarriereStartScraper extends BaseWebScraper {
     protected void setMaxPage(){
         Document doc = this.getDocument(getCurrentUrl());
 
-        Elements liElements = this.getElements(doc, "//ul[@class='paginate paginate-mobile']/li");
+        Elements liElements = this.getElementsFromXPath(doc, "//ul[@class='paginate paginate-mobile']/li");
         Element lastPageElement = liElements.last().select("a[href]").first();
         if (lastPageElement == null) {
             logger.severe("Could not setup max page. " + doc.location());

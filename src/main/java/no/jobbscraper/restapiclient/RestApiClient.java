@@ -1,6 +1,5 @@
 package no.jobbscraper.restapiclient;
 
-import no.jobbscraper.Main;
 import no.jobbscraper.argument.Argument;
 import no.jobbscraper.jobpost.JobPost;
 

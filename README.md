@@ -31,16 +31,16 @@ java -jar job-scraper-jar-with-dependencies.jar --drc no --ip 127.0.0.1 --p 8081
 ```
 
 ### Arguments
-| Name                  | Short name | Help                                                                                                                                                     |
-|-----------------------|------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| --help                | --h        | Display help                                                                                                                                             |
-| --ip                  | --ip       | Specify the ip address                                                                                                                                   |
-| --port                | --p        | Specify the port number                                                                                                                                  |
-| --path                | --ph       | Specify the path                                                                                                                                         |
-| --request-param       | --rp       | Specify the request parameter                                                                                                                            |
-| --disable-rest-client | --drc      | Disable the REST client                                                                                                                                  |
-| --start-page          | --sp       | All scrapers will start at the given page                                                                                                                |
-| --disable-scrapers    | --ds       | Enter a comma separated list of the urls you wish to disable.<br>Example -> https://www.finn.no/job/fulltime/search.html,https://karrierestart.no/jobb   |
+| Name                  | Short name | Help                                                                                           |
+|-----------------------|------------|------------------------------------------------------------------------------------------------|
+| --help                | --h        | Display help                                                                                   |
+| --ip                  | --ip       | Specify the ip address                                                                         |
+| --port                | --p        | Specify the port number                                                                        |
+| --path                | --ph       | Specify the path                                                                               |
+| --request-param       | --rp       | Specify the request parameter                                                                  |
+| --disable-rest-client | --drc      | Disable the REST client                                                                        |
+| --start-page          | --sp       | All scrapers will start at the given page                                                      |
+| --disable-scrapers    | --ds       | Enter a comma separated list of scrapers you wish to disable.<br>Example -> finn,karrierestart |
 
 ## Data Sent to Your REST API
 The following data exemplifies the payload that can be directly transmitted to your REST API.

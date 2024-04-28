@@ -1,5 +1,6 @@
 package no.jobbscraper.jobpost;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.jobbscraper.utils.StringUtils;
 
@@ -9,25 +10,35 @@ import java.util.*;
 public record JobPost (
         @JsonProperty("url")
         String url,
+
         @JsonProperty("company_name")
         String companyName,
+
         @JsonProperty("company_image_url")
         String companyImageUrl,
+
         @JsonProperty("image_url")
         String imageUrl,
+
         @JsonProperty("title")
         String title,
+
         @JsonProperty("description")
         String description,
+
         @JsonProperty("deadline_valid")
         boolean isDeadlineValid,
+
         @JsonProperty("deadline")
         LocalDate deadline,
+
         @JsonProperty("job_tags")
         Set<String> tags,
+
         @JsonProperty("job_definitions")
         Map<String, Set<String>> jobDefinitionMap) {
 
+    @JsonIgnore
     public boolean isValid() {
         return StringUtils.isNotEmpty(url) && StringUtils.isNotEmpty(companyName)
                 && StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(description);
@@ -39,7 +50,7 @@ public record JobPost (
         return String.format("JobPost{url='%s', companyName='%s', companyImageUrl='%s', imageUrl='%s', title='%s', " +
                         "description='%s', deadline='%s', tags='%s', jobDefinitionMap='%s'}",
                 url, companyName, companyImageUrl, imageUrl, title,
-                description.substring(0, maxDescriptionLength) + "...", deadline.toString(), tags, jobDefinitionMap);
+                description.substring(0, maxDescriptionLength) + "...", deadline, tags, jobDefinitionMap);
     }
 
     public static final class Builder {

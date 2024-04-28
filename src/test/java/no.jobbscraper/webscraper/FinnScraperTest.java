@@ -2,8 +2,6 @@ package no.jobbscraper.webscraper;
 
 import no.jobbscraper.utils.DateUtils;
 import no.jobbscraper.utils.ElementSearchQuery;
-import no.jobbscraper.webscraper.BaseWebScraper;
-import no.jobbscraper.webscraper.FinnScraper;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -16,10 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -194,7 +189,7 @@ public class FinnScraperTest {
         LocalDate expected = DateUtils.parseDeadline(deadlineText);
 
         // When
-        when(scraper.getElements(mockDocument, "//dl[@class='definition-list']/dt")).thenReturn(mockElements);
+        when(scraper.getElementsFromXPath(mockDocument, "//dl[@class='definition-list']/dt")).thenReturn(mockElements);
         when(mockElement.ownText()).thenReturn("frist");
         when(mockElement.nextElementSibling()).thenReturn(mockSiblingElement);
         when(mockSiblingElement.ownText()).thenReturn(deadlineText);
@@ -215,7 +210,7 @@ public class FinnScraperTest {
         Elements mockElements = new Elements(List.of(mockElement, mockElement, mockElement));
 
         // When
-        when(scraper.getElements(mockDocument, "//section[@class='panel']/h2[@class='u-t3']")).thenReturn(mockElements);
+        when(scraper.getElementsFromXPath(mockDocument, "//section[@class='panel']/h2[@class='u-t3']")).thenReturn(mockElements);
         when(mockElement.ownText()).thenReturn("Nøkkelord");
         when(mockElement.parent()).thenReturn(mockSiblingElement);
         when(mockSiblingElement.lastElementChild()).thenReturn(mockSiblingElement);
@@ -248,7 +243,8 @@ public class FinnScraperTest {
                 List.of(firstMockElement, firstMockSiblingElement,secondMockElement, secondMockSiblingElement));
 
         // When
-        when(mockDocument.getAllElements()).thenReturn(elements);
+        when(scraper.getElementsFromCssQuery(mockDocument, "dl.definition-list.definition-list--inline > *"))
+                .thenReturn(elements);
 
         when(firstMockElement.tagName()).thenReturn(parentName);
         when(firstMockSiblingElement.tagName()).thenReturn(childrenName);

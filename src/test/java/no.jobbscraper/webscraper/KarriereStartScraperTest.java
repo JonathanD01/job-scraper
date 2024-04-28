@@ -2,8 +2,6 @@ package no.jobbscraper.webscraper;
 
 import no.jobbscraper.utils.DateUtils;
 import no.jobbscraper.utils.ElementSearchQuery;
-import no.jobbscraper.webscraper.BaseWebScraper;
-import no.jobbscraper.webscraper.KarriereStartScraper;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -17,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -229,7 +226,7 @@ public class KarriereStartScraperTest {
         Elements mockElements = new Elements(List.of(mockElement, mockElement, mockElement));
 
         // When
-        when(scraper.getElements(mockDocument, "//p[@class='txt job-tags']/a")).thenReturn(mockElements);
+        when(scraper.getElementsFromXPath(mockDocument, "//p[@class='txt job-tags']/a")).thenReturn(mockElements);
 
         when(mockElement.ownText()).thenReturn("Nøkkelord");
         when(mockElement.parent()).thenReturn(mockSiblingElement);
@@ -263,7 +260,8 @@ public class KarriereStartScraperTest {
                 List.of(firstMockElement, firstMockSiblingElement,secondMockElement, secondMockSiblingElement));
 
         // When
-        when(mockDocument.getAllElements()).thenReturn(elements);
+        when(scraper.getElementsFromCssQuery(mockDocument, "div.concrete_facta_item > div"))
+                .thenReturn(elements);
 
         when(firstMockElement.hasClass(parentName)).thenReturn(true);
         when(firstMockSiblingElement.hasClass(childrenName)).thenReturn(true);
@@ -271,11 +269,11 @@ public class KarriereStartScraperTest {
         when(secondMockElement.hasClass(parentName)).thenReturn(true);
         when(secondMockSiblingElement.hasClass(childrenName)).thenReturn(true);
 
-        when(firstMockElement.ownText()).thenReturn(firstKey);
-        when(firstMockSiblingElement.ownText()).thenReturn(firstValue);
+        when(firstMockElement.text()).thenReturn(firstKey);
+        when(firstMockSiblingElement.text()).thenReturn(firstValue);
 
-        when(secondMockElement.ownText()).thenReturn(secondKey);
-        when(secondMockSiblingElement.ownText()).thenReturn(secondValue);
+        when(secondMockElement.text()).thenReturn(secondKey);
+        when(secondMockSiblingElement.text()).thenReturn(secondValue);
 
         // Then
         Map<String, Set<String>> result = scraper.extractDefinitionsMapForJobPostFromDoc(mockDocument);

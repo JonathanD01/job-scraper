@@ -30,6 +30,8 @@ public sealed abstract class BaseWebScraper
 
     private static final Map<String, String> definitionMap = Map.ofEntries(
             Map.entry("adresse", "Sted"),
+            Map.entry("arbeidssted", "Sted"),
+            Map.entry("tiltredelse", "Ansettelsesform"),
             Map.entry("ansettelsesform", "Ansettelsesform"),
             Map.entry("antall stillinger", "Stillinger"),
             Map.entry("arbeidsdager", "Arbeidsdager"),
@@ -37,6 +39,7 @@ public sealed abstract class BaseWebScraper
             Map.entry("arbeidsspråk", "Arbeidsspråk"),
             Map.entry("arbeidstid", "Arbeidstid"),
             Map.entry("arbeidstidsordning", "Arbeidstidsordning"),
+            Map.entry("bransjer", "Bransje"),
             Map.entry("bransje", "Bransje"),
             Map.entry("heltid/deltid", "Stilling"),
             Map.entry("hjemmekontor", "Hjemmekontor"),
@@ -54,6 +57,7 @@ public sealed abstract class BaseWebScraper
     protected static final BaseRestApiClient apiClient = BaseRestApiClient.getInstance(false);
     private final static int CONNECT_TRIES = 3;
     private final static int WAIT_BEFORE_RECONNECT_MILLIS = 5000;
+    private final String name;
     private final String url;
     private final String urlWithPageQuery;
     private final String XPath;
@@ -64,11 +68,13 @@ public sealed abstract class BaseWebScraper
     /**
      * Constructs a BaseWebScraper object with the specified WebsiteURL.
      *
-     * @param url                       a website url of the website to scrape
-     * @param urlWithPageQuery          a website url of the website to scrape with page query
-     * @param XPath                     a string representing the XPath to the "job posting cards"
+     * @param name              the simple name of the scraper
+     * @param url               a website url of the website to scrape
+     * @param urlWithPageQuery  a website url of the website to scrape with page query
+     * @param XPath             a string representing the XPath to the "job posting cards"
      */
-    public BaseWebScraper(WebsiteURL url, WebsiteURL urlWithPageQuery, String XPath) {
+    public BaseWebScraper(String name, WebsiteURL url, WebsiteURL urlWithPageQuery, String XPath) {
+        this.name = name;
         this.url = url.get();
         this.urlWithPageQuery = urlWithPageQuery.get();
         this.XPath = XPath;
@@ -306,7 +312,7 @@ public sealed abstract class BaseWebScraper
             }
         } catch (RuntimeException e) {
             continueScan = false;
-            logger.log(Level.SEVERE, "Connecting to rest api client failed", e.getMessage());
+            logger.log(Level.SEVERE, "Connecting to rest api client failed. Url: " + apiClient.getPostUrl(), e.getMessage());
         }
     }
 
@@ -355,7 +361,6 @@ public sealed abstract class BaseWebScraper
         LocalDate deadline = extractDeadlineForJobPostFromDoc(jobPostDoc);
         String description = extractDescriptionForJobPostFromDoc(jobPostDoc);
         Set<String> tags = extractTagsForJobPostFromDoc(jobPostDoc);
-
         Map<String, Set<String>> definitionMap = extractDefinitionsMapForJobPostFromDoc(jobPostDoc);
 
         // TODO IMPROVE
@@ -395,11 +400,11 @@ public sealed abstract class BaseWebScraper
             return false;
         }
 
-        String[] disabledWebsitesArray = StringUtils.removeWhitespace(disabledWebsites).split(",");
+        String[] disabledWebsitesArray =
+                Objects.requireNonNull(StringUtils.removeWhitespace(disabledWebsites)).split(",");
 
         return Arrays.stream(disabledWebsitesArray)
-                .anyMatch(url_ -> url.equalsIgnoreCase(url_)
-                        || url.equalsIgnoreCase(urlWithPageQuery));
+                .anyMatch(name::equalsIgnoreCase);
     }
 
     /**

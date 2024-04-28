@@ -6,6 +6,7 @@ import no.jobbscraper.utils.ElementSearchQuery;
 import no.jobbscraper.utils.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -15,7 +16,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
     private final int elementsPerPage;
 
     public ArbeidsplassenNavScraper() {
-        super(WebsiteURL.ARBEIDSPLASSEN_NAV_NO, WebsiteURL.ARBEIDSPLASSEN_NAV_NO_WITH_PAGE, "//article");
+        super("arbeidsplassennav", WebsiteURL.ARBEIDSPLASSEN_NAV_NO, WebsiteURL.ARBEIDSPLASSEN_NAV_NO_WITH_PAGE, "//article");
         this.elementsPerPage = 25;
     }
 
@@ -114,19 +115,22 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
         // then grab the elements own text and add it under as value for
         // the elements own text as key. Only do if the value element have
         // the required class
+
+        Elements elements = getElementsFromXPath(doc, "/html/body/div/div/main/article/section[2]/dl");
+        if (elements.isEmpty()) {
+            logger.severe("Elements at /html/body/div/div/main/article/section[2]/dl were empty");
+            return definitionMap;
+        }
+
         Element currentItemHeader = null;
-        for (Element elementInDoc : doc.getAllElements()) {
+        for (Element elementInDoc : elements) {
             if (elementInDoc.hasClass("navds-label")) {
                 currentItemHeader = elementInDoc;
             }
 
             String elementsOwnText = elementInDoc.ownText();
 
-            if (StringUtils.isEmpty(elementsOwnText)) {
-                continue;
-            }
-
-            if (Objects.isNull(currentItemHeader) || !elementInDoc.hasClass("navds-body-long navds-body-long--medium")) {
+            if (StringUtils.isEmpty(elementsOwnText) || Objects.isNull(currentItemHeader)) {
                 continue;
             }
 
