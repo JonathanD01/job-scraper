@@ -27,7 +27,7 @@ mvn clean package
 java -jar job-scraper-jar-with-dependencies.jar --drc yes
 
 // or send
-java -jar job-scraper-jar-with-dependencies.jar --drc no --ip 127.0.0.1 --p 8081 --path api/v1/jobposts --rp job_posts
+java -jar job-scraper-jar-with-dependencies.jar --drc no --ip 127.0.0.1 --p 8081 --path api/v1/jobposts?secretkey=abc --rp job_posts
 ```
 
 ### Arguments

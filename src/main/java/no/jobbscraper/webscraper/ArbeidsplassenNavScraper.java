@@ -116,9 +116,10 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
         // the elements own text as key. Only do if the value element have
         // the required class
 
-        Elements elements = getElementsFromXPath(doc, "/html/body/div/div/main/article/section[2]/dl");
+        String XPath = "/html/body/div/div/main/article/div/section[2]/dl";
+        Elements elements = getElementsFromXPath(doc, XPath);
         if (elements.isEmpty()) {
-            logger.severe("Elements at /html/body/div/div/main/article/section[2]/dl were empty");
+            logger.severe("Elements " + XPath + " were empty");
             return definitionMap;
         }
 

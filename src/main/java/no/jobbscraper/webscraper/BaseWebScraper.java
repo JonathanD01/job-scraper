@@ -294,9 +294,9 @@ public sealed abstract class BaseWebScraper
      * @param validJobPosts The number of valid job posts created.
      */
     private void logJobPostStatistics(int totalJobPosts, int validJobPosts) {
-        logger.info("[" + getClass().getSimpleName() + "]" +
-                " of " + totalJobPosts + " job posts " + validJobPosts +
-                " were successfully created");
+        logger.info("[" + getClass().getSimpleName() + "] " +
+                totalJobPosts + "/" + validJobPosts +
+                " job posts were successfully created");
     }
 
     /**

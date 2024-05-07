@@ -118,7 +118,12 @@ public final class KarriereStartScraper extends BaseWebScraper {
         // the elements own text as key. Only do if the value element have
         // the required class
 
-        Elements elements = getElementsFromCssQuery(doc, "div.concrete_facta_item > div");
+        String cssQuery = "div.concrete_facta_item > div";
+        Elements elements = getElementsFromCssQuery(doc, cssQuery);
+        if (elements.isEmpty()) {
+            logger.severe("Elements at " + cssQuery + " were empty");
+            return definitionMap;
+        }
 
         Element currentItemHeader = null;
         for (Element elementInDoc : elements) {

@@ -254,7 +254,7 @@ public class ArbeidsplassenNavScraperTest {
                 List.of(firstMockElement, firstMockSiblingElement,secondMockElement, secondMockSiblingElement));
 
         // When
-        when(scraper.getElementsFromXPath(mockDocument, "/html/body/div/div/main/article/section[2]/dl"))
+        when(scraper.getElementsFromXPath(mockDocument, "/html/body/div/div/main/article/div/section[2]/dl"))
                 .thenReturn(elements);
 
         when(firstMockElement.hasClass(parentName)).thenReturn(true);

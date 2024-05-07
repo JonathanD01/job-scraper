@@ -125,9 +125,10 @@ public final class FinnScraper extends BaseWebScraper {
         // the elements own text as key. Only do if the value element have
         // the required class
 
-        Elements elements = getElementsFromCssQuery(doc, "dl.definition-list.definition-list--inline > *");
+        String cssQuery = "dl.definition-list.definition-list--inline > *";
+        Elements elements = getElementsFromCssQuery(doc, cssQuery);
         if (elements.isEmpty()) {
-            logger.severe("Elements at dl.definition-list.definition-list--inline > * were empty");
+            logger.severe("Elements at " + cssQuery + " were empty");
             return definitionMap;
         }
 
