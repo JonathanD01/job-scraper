@@ -372,7 +372,6 @@ public sealed abstract class BaseWebScraper
                 .setCompanyName(companyName)
                 .setCompanyImageUrl(companyImageUrl)
                 .setDescription(description)
-                .setIsDeadLineValid(deadline != null)
                 .setDeadline(deadline)
                 .setTags(tags)
                 .setDefinitionMap(definitionMap)

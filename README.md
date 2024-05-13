@@ -113,7 +113,7 @@ but it serves as a practical example for demonstration purposes in this context.
 public final class MyScraperClass extends BaseWebScraper {
     
     public MyScraperClass() {
-        super(WebsiteURL.MYWEBSITE_ORG_PAGE, WebsiteURL.MYWEBSITE_ORG_PAGE_WITH_PAGE, "//article");
+        super("scraper name", WebsiteURL.MYWEBSITE_ORG_PAGE, WebsiteURL.MYWEBSITE_ORG_PAGE_WITH_PAGE, "//article");
     }
 
     @Override

@@ -26,9 +26,6 @@ public record JobPost (
         @JsonProperty("description")
         String description,
 
-        @JsonProperty("deadline_valid")
-        boolean isDeadlineValid,
-
         @JsonProperty("deadline")
         LocalDate deadline,
 
@@ -60,7 +57,6 @@ public record JobPost (
         private String companyName;
         private String companyImageUrl;
         private String description;
-        private boolean isDeadlineValid;
         private LocalDate deadline;
         private Set<String> tags;
         private Map<String, Set<String>> definitionMap;
@@ -88,11 +84,6 @@ public record JobPost (
             return this;
         }
 
-        public Builder setIsDeadLineValid(boolean isDeadlineValid) {
-            this.isDeadlineValid = isDeadlineValid;
-            return this;
-        }
-
         public Builder setDeadline(LocalDate deadline) {
             this.deadline = deadline;
             return this;
@@ -110,7 +101,7 @@ public record JobPost (
 
         public JobPost build() {
             return new JobPost(url, companyName, companyImageUrl, imageUrl,
-                    title, description, isDeadlineValid, deadline, tags, definitionMap);
+                    title, description, deadline, tags, definitionMap);
         }
 
     }
