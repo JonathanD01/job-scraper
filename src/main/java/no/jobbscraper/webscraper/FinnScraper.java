@@ -52,7 +52,7 @@ public final class FinnScraper extends BaseWebScraper {
     @Override
     String extractCompanyNameForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setCssQuery("h2")
+                .setXPath("/html/body/main/div/div[3]/div[1]/div/section[2]/dl/dd[1]")
                 .ownText()
                 .build();
 
@@ -62,7 +62,7 @@ public final class FinnScraper extends BaseWebScraper {
     @Override
     String extractCompanyImageUrlForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("//img[@class='img-format__img']")
+                .setXPath("//img[@class='img-format__img']")
                 .attributeToReturn("abs:src")
                 .build();
 
@@ -72,7 +72,7 @@ public final class FinnScraper extends BaseWebScraper {
     @Override
     String extractDescriptionForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("/html/body/main/div/div[3]/div[1]/div/div[3]/section")
+                .setXPath("/html/body/main/div/div[3]/div[1]/div/div[3]/section")
                 .html()
                 .build();
 

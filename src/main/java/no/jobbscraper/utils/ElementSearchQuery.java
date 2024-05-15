@@ -52,7 +52,7 @@ public record ElementSearchQuery(
             return this;
         }
 
-        public Builder setXpath(String XPath) {
+        public Builder setXPath(String XPath) {
             this.XPath = XPath;
             return this;
         }

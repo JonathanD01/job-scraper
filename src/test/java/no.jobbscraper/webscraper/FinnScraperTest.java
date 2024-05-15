@@ -107,7 +107,7 @@ public class FinnScraperTest {
         Document document = mock(Document.class);
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(document)
-                .setCssQuery("h2")
+                .setXPath("/html/body/main/div/div[3]/div[1]/div/section[2]/dl/dd[1]")
                 .ownText()
                 .build();
 
@@ -115,9 +115,10 @@ public class FinnScraperTest {
 
         Document mockDocument = mock(Document.class);
         Element mockFirstElement = mock(Element.class);
+        Elements mockElements = new Elements(List.of(mockFirstElement));
 
         // When
-        when(mockDocument.selectFirst(searchQuery.cssQuery())).thenReturn(mockFirstElement);
+        when(mockDocument.selectXpath(searchQuery.XPath())).thenReturn(mockElements);
         when(mockFirstElement.ownText()).thenReturn(expected);
 
         // Then
@@ -132,7 +133,7 @@ public class FinnScraperTest {
         // Given
         Document mockDocument = mock(Document.class);
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("//img[@class='img-format__img']")
+                .setXPath("//img[@class='img-format__img']")
                 .attributeToReturn("abs:src")
                 .build();
 
@@ -157,7 +158,7 @@ public class FinnScraperTest {
         // Given
         Document mockDocument = mock(Document.class);
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("/html/body/main/div/div[3]/div[1]/div/div[3]/section")
+                .setXPath("/html/body/main/div/div[3]/div[1]/div/div[3]/section")
                 .html()
                 .build();
 

@@ -62,7 +62,7 @@ public final class KarriereStartScraper extends BaseWebScraper {
     @Override
     String extractCompanyNameForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("//div[@class='menu-item topic-header-text']")
+                .setXPath("//div[@class='menu-item topic-header-text']")
                 .ownText()
                 .build();
 
@@ -72,7 +72,7 @@ public final class KarriereStartScraper extends BaseWebScraper {
     @Override
     String extractCompanyImageUrlForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("//div[@class='cp_header_logo']/a/img")
+                .setXPath("//div[@class='cp_header_logo']/a/img")
                 .attributeToReturn("abs:src")
                 .build();
 
@@ -82,7 +82,7 @@ public final class KarriereStartScraper extends BaseWebScraper {
     @Override
     String extractDescriptionForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("//div[@class='description_cnt--pb20 dual-bullet-list p_fix']")
+                .setXPath("//div[@class='description_cnt--pb20 dual-bullet-list p_fix']")
                 .html()
                 .build();
 
@@ -92,7 +92,7 @@ public final class KarriereStartScraper extends BaseWebScraper {
     @Override
     LocalDate extractDeadlineForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("//span[@class='jobad-deadline-date']")
+                .setXPath("//span[@class='jobad-deadline-date']")
                 .ownText()
                 .build();
 

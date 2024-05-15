@@ -70,7 +70,7 @@ public class ArbeidsplassenNavScraperTest {
         Elements mockElements = new Elements(List.of(mockElement));
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(url, mockElement)
-                .setXpath("anyString()")
+                .setXPath("anyString()")
                 .attributeToReturn("abs:href")
                 .build();
 
@@ -139,7 +139,7 @@ public class ArbeidsplassenNavScraperTest {
         Elements mockElements = new Elements(List.of(mockFirstElement));
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("//p[@class='navds-body-long navds-body-long--medium navds-typo--semibold']")
+                .setXPath("//p[@class='navds-body-long navds-body-long--medium navds-typo--semibold']")
                 .ownText()
                 .build();
 
@@ -177,7 +177,7 @@ public class ArbeidsplassenNavScraperTest {
         Elements mockElements = new Elements(List.of(mockElement));
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("//div[@class='arb-rich-text job-posting-text']")
+                .setXPath("//div[@class='arb-rich-text job-posting-text']")
                 .html()
                 .build();
 
@@ -202,7 +202,7 @@ public class ArbeidsplassenNavScraperTest {
         Elements mockElements = new Elements(List.of(mockElement));
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("/html/body/div/div/main/div/article/div/div[2]/div/dl/dd/p")
+                .setXPath("/html/body/div/div/main/div/article/div/div[2]/div/dl/dd/p")
                 .ownText()
                 .build();
 

@@ -40,7 +40,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
         int elementSiblingIndex = element.elementSiblingIndex() + 1;
         String XPath = String.format("//article[%s]/div[1]/div[1]/div/h3/a", elementSiblingIndex);
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(url, element)
-                .setXpath(XPath)
+                .setXPath(XPath)
                 .attributeToReturn("abs:href")
                 .build();
 
@@ -67,7 +67,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
     @Override
     String extractCompanyNameForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("//p[@class='navds-body-long navds-body-long--medium navds-typo--semibold']")
+                .setXPath("//p[@class='navds-body-long navds-body-long--medium navds-typo--semibold']")
                 .ownText()
                 .build();
 
@@ -83,7 +83,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
     @Override
     String extractDescriptionForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("//div[@class='arb-rich-text job-posting-text']")
+                .setXPath("//div[@class='arb-rich-text job-posting-text']")
                 .html()
                 .build();
 
@@ -93,7 +93,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
     @Override
     LocalDate extractDeadlineForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXpath("/html/body/div/div/main/div/article/div/div[2]/div/dl/dd/p")
+                .setXPath("/html/body/div/div/main/div/article/div/div[2]/div/dl/dd/p")
                 .ownText()
                 .build();
 

@@ -125,7 +125,7 @@ public class KarriereStartScraperTest {
         Elements mockElements = new Elements(List.of(mockFirstElement));
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("//div[@class='menu-item topic-header-text']")
+                .setXPath("//div[@class='menu-item topic-header-text']")
                 .ownText()
                 .build();
 
@@ -149,7 +149,7 @@ public class KarriereStartScraperTest {
         Elements mockElements = new Elements(List.of(mockElement));
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("//div[@class='cp_header_logo']/a/img")
+                .setXPath("//div[@class='cp_header_logo']/a/img")
                 .attributeToReturn("abs:src")
                 .build();
 
@@ -174,7 +174,7 @@ public class KarriereStartScraperTest {
         Elements mockElements = new Elements(List.of(mockElement));
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("//div[@class='description_cnt--pb20 dual-bullet-list p_fix']")
+                .setXPath("//div[@class='description_cnt--pb20 dual-bullet-list p_fix']")
                 .html()
                 .build();
 
@@ -199,7 +199,7 @@ public class KarriereStartScraperTest {
         Elements mockElements = new Elements(List.of(mockElement));
 
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXpath("//span[@class='jobad-deadline-date']")
+                .setXPath("//span[@class='jobad-deadline-date']")
                 .ownText()
                 .build();
 

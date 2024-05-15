@@ -7,8 +7,6 @@ import java.util.logging.Logger;
 public class Database {
 
     private static final Logger logger = Logger.getLogger(Database.class.getName());
-    private static final String TABLE_NAME = "VISITED_URLS";
-    private static final String ROW_NAME = "URL";
 
     private Database() {
         throw new AssertionError();
@@ -18,28 +16,30 @@ public class Database {
         createTable();
     }
 
-    public static boolean exists(String url) {
+    public static boolean exists(String url, String fullIp) {
         try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
-                     "SELECT EXISTS (SELECT 1 FROM " + TABLE_NAME + " WHERE " + ROW_NAME + " = ?)")) {
+                     "SELECT EXISTS (SELECT 1 FROM VISITED_URLS WHERE URL = ? AND IP = ?)")) {
             preparedStatement.setString(1, url);
+            preparedStatement.setString(2, fullIp);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 return resultSet.next() && resultSet.getBoolean(1);
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error occurred when checking if " + url + " exists", e.getMessage());
+            logger.log(Level.SEVERE, "Error occurred when checking if " + url + " & " + fullIp + " exists", e.getMessage());
             return false;
         }
     }
 
-    public static void insertUrl(String url) {
+    public static void insertUrl(String url, String fullIp) {
         try (Connection connection = getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(
-                     "INSERT INTO " + TABLE_NAME + " (" + ROW_NAME + ") VALUES (?)")) {
+             PreparedStatement preparedStatement = connection
+                     .prepareStatement("INSERT INTO VISITED_URLS (URL, IP) VALUES (?, ?)")) {
             preparedStatement.setString(1, url);
+            preparedStatement.setString(2, fullIp);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error occurred when inserting " + url, e.getMessage());
+            logger.log(Level.SEVERE, "Error occurred when inserting " + url + " & " + fullIp, e.getMessage());
         }
     }
 
@@ -50,8 +50,9 @@ public class Database {
     private static void createTable() {
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
-                    " (" + ROW_NAME + " CHAR(255) PRIMARY KEY NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS VISITED_URLS " +
+                    "(URL CHAR(255) NOT NULL, " +
+                    "IP CHAR(255) NOT NULL)");
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error occurred when creating table", e.getMessage());
         }

@@ -61,6 +61,7 @@ public sealed abstract class BaseWebScraper
     private final String url;
     private final String urlWithPageQuery;
     private final String XPath;
+    private final String fullIp;
     private int page;
     private int maxPage;
     private boolean continueScan;
@@ -78,6 +79,8 @@ public sealed abstract class BaseWebScraper
         this.url = url.get();
         this.urlWithPageQuery = urlWithPageQuery.get();
         this.XPath = XPath;
+        this.fullIp = Argument.getValue(Argument.IP) +
+                (Argument.getValue(Argument.PORT) == null ? "" : ":" + Argument.getValue(Argument.PORT));
         this.page = 1;
         this.maxPage = 0;
         this.continueScan = true;
@@ -295,7 +298,7 @@ public sealed abstract class BaseWebScraper
      */
     private void logJobPostStatistics(int totalJobPosts, int validJobPosts) {
         logger.info("[" + getClass().getSimpleName() + "] " +
-                totalJobPosts + "/" + validJobPosts +
+                validJobPosts + "/" + totalJobPosts +
                 " job posts were successfully created");
     }
 
@@ -322,7 +325,7 @@ public sealed abstract class BaseWebScraper
      * @param jobPosts The list of job posts whose URLs are to be marked as scraped.
      */
     private void markUrlsAsScraped(List<JobPost> jobPosts) {
-        jobPosts.forEach(jobPost -> Database.insertUrl(jobPost.url()));
+        jobPosts.forEach(jobPost -> Database.insertUrl(jobPost.url(), fullIp));
     }
 
     /**
@@ -342,7 +345,7 @@ public sealed abstract class BaseWebScraper
             return null;
         }
 
-        if (Database.exists(jobPostUrl)) {
+        if (Database.exists(jobPostUrl, fullIp)) {
             return null;
         }
 
