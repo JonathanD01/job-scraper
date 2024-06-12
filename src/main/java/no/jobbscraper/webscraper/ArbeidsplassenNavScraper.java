@@ -16,7 +16,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
     private final int elementsPerPage;
 
     public ArbeidsplassenNavScraper() {
-        super("arbeidsplassennav", WebsiteURL.ARBEIDSPLASSEN_NAV_NO, WebsiteURL.ARBEIDSPLASSEN_NAV_NO_WITH_PAGE, "//article");
+        super("nav", WebsiteURL.ARBEIDSPLASSEN_NAV_NO, WebsiteURL.ARBEIDSPLASSEN_NAV_NO_WITH_PAGE, "//article");
         this.elementsPerPage = 25;
     }
 
@@ -44,7 +44,13 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
                 .attributeToReturn("abs:href")
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedUrl = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedUrl == null) {
+            throw new NullPointerException("Retrieved url was null from " + url);
+        }
+
+        return retrievedUrl;
     }
 
     @Override
@@ -61,7 +67,13 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
                 .setRequiredAttributes(List.of("href"))
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedTitle = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedTitle == null) {
+            throw new NullPointerException("Title was null from " + url);
+        }
+
+        return retrievedTitle;
     }
 
     @Override
@@ -71,7 +83,13 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
                 .ownText()
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedCompanyName = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedCompanyName == null) {
+            throw new NullPointerException("Company name was null from : " + doc.location());
+        }
+
+        return retrievedCompanyName;
     }
 
     @Override
@@ -87,7 +105,13 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
                 .html()
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedDescription = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedDescription == null) {
+            throw new NullPointerException("Job description was null from: " + doc.location());
+        }
+
+        return retrievedDescription;
     }
 
     @Override

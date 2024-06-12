@@ -210,7 +210,9 @@ public sealed abstract class BaseWebScraper
      * @return              The proper definition name corresponding to the key, or null if not found.
      */
     protected String retrieveProperDefinitionName(String definitionKey) {
-        definitionKey = definitionKey.toLowerCase();
+        definitionKey = definitionKey
+                .replaceAll(":" , "")
+                .toLowerCase();
         return definitionMap.getOrDefault(definitionKey, null);
     }
 
@@ -286,7 +288,6 @@ public sealed abstract class BaseWebScraper
         return jobPostElements.stream()
                 .map(jobPostElement -> buildJobPost(url, jobPostElement))
                 .filter(Objects::nonNull)
-                .filter(JobPost::isValid)
                 .toList();
     }
 

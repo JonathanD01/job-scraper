@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
 public final class KarriereStartScraper extends BaseWebScraper {
 
     public KarriereStartScraper() {
-        super("karrierestart", WebsiteURL.KARRIERESTART_NO, WebsiteURL.KARRIERESTART_NO_WITH_PAGE, "//div[@id='f-search-results']/div");
+        super("karrierestart", WebsiteURL.KARRIERESTART_NO, WebsiteURL.KARRIERESTART_NO_WITH_PAGE, "//div[@class='featured-wrap']");
         this.setMaxPage();
     }
 
     KarriereStartScraper(int maxPage) {
-        super("karrierestart", WebsiteURL.KARRIERESTART_NO, WebsiteURL.KARRIERESTART_NO_WITH_PAGE, "//div[@id='f-search-results']/div");
+        super("karrierestart", WebsiteURL.KARRIERESTART_NO, WebsiteURL.KARRIERESTART_NO_WITH_PAGE, "//div[@class='featured-wrap']");
         super.setMaxPage(maxPage);
     }
 
@@ -36,7 +36,13 @@ public final class KarriereStartScraper extends BaseWebScraper {
                 .attributeToReturn("abs:href")
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedUrl = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedUrl == null) {
+            throw new NullPointerException("Retrieved url was null from " + url);
+        }
+
+        return retrievedUrl;
     }
 
     @Override
@@ -56,7 +62,13 @@ public final class KarriereStartScraper extends BaseWebScraper {
                 .text()
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedTitle = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedTitle == null) {
+            throw new NullPointerException("Title was null from " + url);
+        }
+
+        return retrievedTitle;
     }
 
     @Override
@@ -66,7 +78,13 @@ public final class KarriereStartScraper extends BaseWebScraper {
                 .ownText()
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedCompanyName = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedCompanyName == null) {
+            throw new NullPointerException("Company name was null from : " + doc.location());
+        }
+
+        return retrievedCompanyName;
     }
 
     @Override
@@ -86,7 +104,13 @@ public final class KarriereStartScraper extends BaseWebScraper {
                 .html()
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedDescription = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedDescription == null) {
+            throw new NullPointerException("Job description was null from: " + doc.location());
+        }
+
+        return retrievedDescription;
     }
 
     @Override
@@ -95,7 +119,6 @@ public final class KarriereStartScraper extends BaseWebScraper {
                 .setXPath("//span[@class='jobad-deadline-date']")
                 .ownText()
                 .build();
-
 
         String dateAsText = retrieveResultFromSearchQuery(searchQuery);
         return DateUtils.parseDeadline(dateAsText);

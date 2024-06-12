@@ -1,11 +1,11 @@
 package no.jobbscraper.jobpost;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import no.jobbscraper.utils.StringUtils;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 public record JobPost (
         @JsonProperty("url")
@@ -34,12 +34,6 @@ public record JobPost (
 
         @JsonProperty("job_definitions")
         Map<String, Set<String>> jobDefinitionMap) {
-
-    @JsonIgnore
-    public boolean isValid() {
-        return StringUtils.isNotEmpty(url) && StringUtils.isNotEmpty(companyName)
-                && StringUtils.isNotEmpty(title) && StringUtils.isNotEmpty(description);
-    }
 
     @Override
     public String toString() {

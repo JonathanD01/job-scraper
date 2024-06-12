@@ -4,11 +4,15 @@ import no.jobbscraper.argument.Argument;
 import no.jobbscraper.database.Database;
 import no.jobbscraper.url.WebsiteURL;
 import no.jobbscraper.utils.StringUtils;
-import no.jobbscraper.webscraper.*;
+import no.jobbscraper.webscraper.ArbeidsplassenNavScraper;
+import no.jobbscraper.webscraper.BaseWebScraper;
+import no.jobbscraper.webscraper.FinnScraper;
+import no.jobbscraper.webscraper.KarriereStartScraper;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;

@@ -26,7 +26,13 @@ public final class FinnScraper extends BaseWebScraper {
                 .attributeToReturn("abs:href")
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedUrl = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedUrl == null) {
+            throw new NullPointerException("Retrieved url was null from " + url);
+        }
+
+        return retrievedUrl;
     }
 
     @Override
@@ -46,17 +52,36 @@ public final class FinnScraper extends BaseWebScraper {
                 .text()
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        String retrievedTitle = retrieveResultFromSearchQuery(searchQuery);
+
+        if (retrievedTitle == null) {
+            throw new NullPointerException("Title was null from " + url);
+        }
+
+        return retrievedTitle;
     }
 
     @Override
     String extractCompanyNameForJobPostFromDoc(Document doc) {
-        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXPath("/html/body/main/div/div[3]/div[1]/div/section[2]/dl/dd[1]")
-                .ownText()
-                .build();
+        Elements elements = this.getElementsFromXPath(doc, "//ul/li");
+        if (elements.isEmpty()) {
+            logger.warning("Elements list was empty, could not get company name for job post at " + doc.location());
+            return null;
+        }
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        for (Element element : elements) {
+            Element firstElementChild = element.firstElementChild();
+            boolean isLiElementFrist = firstElementChild != null &&
+                    firstElementChild
+                            .ownText()
+                            .replaceAll(":", "")
+                            .equalsIgnoreCase("arbeidsgiver");
+            if (isLiElementFrist) {
+                return element.ownText();
+            }
+        }
+
+        throw new NullPointerException("Company name was null from : " + doc.location());
     }
 
     @Override
@@ -72,24 +97,39 @@ public final class FinnScraper extends BaseWebScraper {
     @Override
     String extractDescriptionForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXPath("/html/body/main/div/div[3]/div[1]/div/div[3]/section")
-                .html()
+                .setCssQuery("div.import-decoration")
                 .build();
 
-        return retrieveResultFromSearchQuery(searchQuery);
+        StringBuilder stringBuilder = new StringBuilder();
+
+        Elements descriptionElements = getElementsFromCssQuery(searchQuery.document(), searchQuery.cssQuery());
+
+        if (descriptionElements.isEmpty()) {
+            throw new NullPointerException("Job description was null from : " + doc.location());
+        }
+
+        descriptionElements.forEach(element -> stringBuilder.append(element.html()));
+
+        return stringBuilder.toString();
     }
 
     @Override
     LocalDate extractDeadlineForJobPostFromDoc(Document doc) {
-        Elements elements = this.getElementsFromXPath(doc, "//dl[@class='definition-list']/dt");
+        Elements elements = this.getElementsFromXPath(doc, "//ul/li");
         if (elements.isEmpty()) {
             logger.warning("Elements list was empty, could not get deadline for job post at " + doc.location());
             return null;
         }
 
         for (Element element : elements) {
-            if (element.ownText().equalsIgnoreCase("frist")) {
-                String dateAsText = element.nextElementSibling().ownText();
+            Element firstElementChild = element.firstElementChild();
+            boolean isLiElementFrist = firstElementChild != null &&
+                    firstElementChild
+                            .ownText()
+                            .replaceAll(":", "")
+                            .equalsIgnoreCase("frist");
+            if (isLiElementFrist) {
+                String dateAsText = element.ownText();
                 return DateUtils.parseDeadline(dateAsText);
             }
         }
@@ -125,39 +165,40 @@ public final class FinnScraper extends BaseWebScraper {
         // the elements own text as key. Only do if the value element have
         // the required class
 
-        String cssQuery = "dl.definition-list.definition-list--inline > *";
-        Elements elements = getElementsFromCssQuery(doc, cssQuery);
+        String XPath = "//ul/li";
+        Elements elements = getElementsFromXPath(doc, XPath);
         if (elements.isEmpty()) {
-            logger.severe("Elements at " + cssQuery + " were empty");
+            logger.severe("Elements at " + XPath + " were empty");
             return definitionMap;
         }
 
-        Element currentItemHeader = null;
         for (Element elementInDoc : elements) {
-            if (elementInDoc.tagName().equalsIgnoreCase("dt")) {
-                currentItemHeader = elementInDoc;
+            if (elementInDoc.tagName().equalsIgnoreCase("li")) {
+                Element currentItemHeader = elementInDoc.firstElementChild();
+                if (currentItemHeader == null) {
+                    continue;
+                }
+
+                String elementsOwnText = elementInDoc.ownText();
+
+                if (StringUtils.isEmpty(elementsOwnText)) {
+                    continue;
+                }
+
+                String currentItemHeaderText = retrieveProperDefinitionName(currentItemHeader.ownText());
+
+                if (StringUtils.isEmpty(currentItemHeaderText)) {
+                    continue;
+                }
+
+                Set<String> definitions = definitionMap.getOrDefault(currentItemHeaderText, new HashSet<>());
+
+                String value = retrieveCorrectValueForKey(currentItemHeaderText,
+                        StringUtils.removeTrailingComma(elementsOwnText));
+
+                definitions.add(value);
+                definitionMap.put(currentItemHeaderText, definitions);
             }
-
-            String elementsOwnText = elementInDoc.ownText();
-
-            if (StringUtils.isEmpty(elementsOwnText) || Objects.isNull(currentItemHeader)) {
-                continue;
-            }
-
-            String currentItemHeaderText = retrieveProperDefinitionName(currentItemHeader.ownText());
-
-            if (StringUtils.isEmpty(currentItemHeaderText) || !elementInDoc.tagName().equalsIgnoreCase("dd")) {
-                continue;
-            }
-
-
-            Set<String> definitions = definitionMap.getOrDefault(currentItemHeaderText, new HashSet<>());
-
-            String value = retrieveCorrectValueForKey(currentItemHeaderText,
-                    StringUtils.removeTrailingComma(elementsOwnText));
-
-            definitions.add(value);
-            definitionMap.put(currentItemHeaderText, definitions);
         }
         return definitionMap;
     }

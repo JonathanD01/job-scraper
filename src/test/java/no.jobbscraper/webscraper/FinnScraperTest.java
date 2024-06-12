@@ -104,22 +104,22 @@ public class FinnScraperTest {
     @DisplayName("Ensure extracting company name works")
     void itShouldExtractCompanyNameForJobPostFromDoc() {
         // Given
-        Document document = mock(Document.class);
-
-        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(document)
-                .setXPath("/html/body/main/div/div[3]/div[1]/div/section[2]/dl/dd[1]")
-                .ownText()
-                .build();
+        Document mockDocument = mock(Document.class);
+        Element mockElement = mock(Element.class);
+        Element mockElementFirstElement = mock(Element.class);
+        Elements mockElements = new Elements(List.of(mockElement));
 
         String expected = "Tencent";
 
-        Document mockDocument = mock(Document.class);
-        Element mockFirstElement = mock(Element.class);
-        Elements mockElements = new Elements(List.of(mockFirstElement));
-
         // When
-        when(mockDocument.selectXpath(searchQuery.XPath())).thenReturn(mockElements);
-        when(mockFirstElement.ownText()).thenReturn(expected);
+        when(scraper.getElementsFromXPath(mockDocument, "//ul/li"))
+                .thenReturn(mockElements);
+
+        when(mockElement.firstElementChild()).thenReturn(mockElementFirstElement);
+
+        when(mockElementFirstElement.ownText()).thenReturn("arbeidsgiver");
+
+        when(mockElement.ownText()).thenReturn(expected);
 
         // Then
         String actual = scraper.extractCompanyNameForJobPostFromDoc(mockDocument);
@@ -158,8 +158,7 @@ public class FinnScraperTest {
         // Given
         Document mockDocument = mock(Document.class);
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXPath("/html/body/main/div/div[3]/div[1]/div/div[3]/section")
-                .html()
+                .setCssQuery("div.import-decoration")
                 .build();
 
         Element mockElement = mock(Element.class);
@@ -168,7 +167,7 @@ public class FinnScraperTest {
         String expected = "<p>Bonjour</p>";
 
         // When
-        when(mockDocument.selectXpath(searchQuery.XPath())).thenReturn(mockElements);
+        when(mockDocument.select(searchQuery.cssQuery())).thenReturn(mockElements);
         when(mockElement.html()).thenReturn(expected);
 
         // Then
@@ -183,17 +182,22 @@ public class FinnScraperTest {
         // Given
         Document mockDocument = mock(Document.class);
         Element mockElement = mock(Element.class);
-        Element mockSiblingElement = mock(Element.class);
+        Element mockElementFirstElement = mock(Element.class);
         Elements mockElements = new Elements(List.of(mockElement));
 
         String deadlineText = "12.03.2038";
         LocalDate expected = DateUtils.parseDeadline(deadlineText);
 
         // When
-        when(scraper.getElementsFromXPath(mockDocument, "//dl[@class='definition-list']/dt")).thenReturn(mockElements);
-        when(mockElement.ownText()).thenReturn("frist");
-        when(mockElement.nextElementSibling()).thenReturn(mockSiblingElement);
-        when(mockSiblingElement.ownText()).thenReturn(deadlineText);
+        when(scraper.getElementsFromXPath(mockDocument, "//ul/li"))
+                .thenReturn(mockElements);
+
+        when(mockElement.firstElementChild()).thenReturn(mockElementFirstElement);
+
+        when(mockElementFirstElement.ownText()).thenReturn("frist");
+
+
+        when(mockElement.ownText()).thenReturn(deadlineText);
 
         // Then
         LocalDate actual = scraper.extractDeadlineForJobPostFromDoc(mockDocument);
@@ -228,41 +232,63 @@ public class FinnScraperTest {
     @DisplayName("Ensure extraction description map works")
     void itShouldExtractDescriptionMapForJobPostFromDoc() {
         // Given
-        String parentName = "dt";
-        String childrenName = "dd";
+        String tagName = "li";
+
         String firstKey = "Stilling";
         String firstValue = "Heltid";
+
         String secondKey = "Sektor";
         String secondValue = "Privat";
 
+        String thirdKey = "Sted";
+        String thirdValue = "Oslo";
+
+        String fourthKey = "Bransje";
+        String fourthValue = "IT";
+
         Document mockDocument = mock(Document.class);
+
         Element firstMockElement = mock(Element.class);
-        Element firstMockSiblingElement = mock(Element.class);
         Element secondMockElement = mock(Element.class);
-        Element secondMockSiblingElement = mock(Element.class);
+        Element thirdMockElement = mock(Element.class);
+        Element fourthMockElement = mock(Element.class);
+
+        Element firstSiblingMockElement = mock(Element.class);
+        Element secondSiblingMockElement = mock(Element.class);
+        Element thirdSiblingMockElement = mock(Element.class);
+        Element fourthSiblingMockElement = mock(Element.class);
+
         Elements elements = new Elements(
-                List.of(firstMockElement, firstMockSiblingElement,secondMockElement, secondMockSiblingElement));
+                List.of(firstMockElement, secondMockElement, thirdMockElement, fourthMockElement));
 
         // When
-        when(scraper.getElementsFromCssQuery(mockDocument, "dl.definition-list.definition-list--inline > *"))
+        when(scraper.getElementsFromXPath(mockDocument, "//ul/li"))
                 .thenReturn(elements);
 
-        when(firstMockElement.tagName()).thenReturn(parentName);
-        when(firstMockSiblingElement.tagName()).thenReturn(childrenName);
+        when(firstMockElement.tagName()).thenReturn(tagName);
+        when(secondMockElement.tagName()).thenReturn(tagName);
+        when(thirdMockElement.tagName()).thenReturn(tagName);
+        when(fourthMockElement.tagName()).thenReturn(tagName);
 
-        when(secondMockElement.tagName()).thenReturn(parentName);
-        when(secondMockSiblingElement.tagName()).thenReturn(childrenName);
+        when(firstMockElement.firstElementChild()).thenReturn(firstSiblingMockElement);
+        when(secondMockElement.firstElementChild()).thenReturn(secondSiblingMockElement);
+        when(thirdMockElement.firstElementChild()).thenReturn(thirdSiblingMockElement);
+        when(fourthMockElement.firstElementChild()).thenReturn(fourthSiblingMockElement);
 
-        when(firstMockElement.ownText()).thenReturn(firstKey);
-        when(firstMockSiblingElement.ownText()).thenReturn(firstValue);
+        when(firstMockElement.ownText()).thenReturn(firstValue);
+        when(secondMockElement.ownText()).thenReturn(secondValue);
+        when(thirdMockElement.ownText()).thenReturn(thirdValue);
+        when(fourthMockElement.ownText()).thenReturn(fourthValue);
 
-        when(secondMockElement.ownText()).thenReturn(secondKey);
-        when(secondMockSiblingElement.ownText()).thenReturn(secondValue);
+        when(firstSiblingMockElement.ownText()).thenReturn(firstKey);
+        when(secondSiblingMockElement.ownText()).thenReturn(secondKey);
+        when(thirdSiblingMockElement.ownText()).thenReturn(thirdKey);
+        when(fourthSiblingMockElement.ownText()).thenReturn(fourthKey);
 
         // Then
         Map<String, Set<String>> result = scraper.extractDefinitionsMapForJobPostFromDoc(mockDocument);
 
-        int expected = elements.size() / 2;
+        int expected = elements.size();
         int actual = result.keySet().size();
 
         Assertions.assertEquals(expected, actual);

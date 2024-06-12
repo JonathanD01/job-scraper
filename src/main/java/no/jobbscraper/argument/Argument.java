@@ -1,14 +1,9 @@
 package no.jobbscraper.argument;
 
-import no.jobbscraper.Main;
-import no.jobbscraper.url.WebsiteURL;
-import no.jobbscraper.utils.StringUtils;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public enum Argument {
 
@@ -20,8 +15,8 @@ public enum Argument {
     DISABLE_REST_CLIENT("--disable-rest-client", "--drc", List.of("Disable the REST client")),
     START_PAGE("--start-page", "--sp", List.of("All scrapers will start at the given page")),
     DISABLED_SCRAPERS("--disabled-scrapers", "--ds",
-            List.of("Enter a comma separated list of the urls you wish to disable.",
-                    "Example -> https://www.finn.no/job/fulltime/search.html,https://karrierestart.no/jobb"));
+            List.of("Enter a comma separated list of scrapers you wish to disable.",
+                    "Example -> finn,karrierestart"));
 
     private final static Map<Argument, String> MAP = new HashMap<>();
     private final String name;

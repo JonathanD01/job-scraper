@@ -1,12 +1,9 @@
 package no.jobbscraper.utils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
+import java.util.Objects;
 
 public class DateUtils {
 
@@ -25,7 +22,7 @@ public class DateUtils {
         for (String pattern : datePatterns) {
             try {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-                return LocalDate.parse(StringUtils.removeWhitespace(deadline), formatter);
+                return LocalDate.parse(Objects.requireNonNull(StringUtils.removeWhitespace(deadline)), formatter);
             } catch (DateTimeParseException e) {
                 // Ignore? What else?
             }
