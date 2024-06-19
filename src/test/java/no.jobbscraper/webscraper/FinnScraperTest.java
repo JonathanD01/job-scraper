@@ -106,18 +106,18 @@ public class FinnScraperTest {
         // Given
         Document mockDocument = mock(Document.class);
         Element mockElement = mock(Element.class);
-        Element mockElementFirstElement = mock(Element.class);
         Elements mockElements = new Elements(List.of(mockElement));
+
+        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
+                .setXPath("/html/body/main/div[2]/div[2]/div/section[2]/div/p")
+                .build();
+
 
         String expected = "Tencent";
 
         // When
-        when(scraper.getElementsFromXPath(mockDocument, "//ul/li"))
+        when(mockDocument.selectXpath(searchQuery.XPath()))
                 .thenReturn(mockElements);
-
-        when(mockElement.firstElementChild()).thenReturn(mockElementFirstElement);
-
-        when(mockElementFirstElement.ownText()).thenReturn("arbeidsgiver");
 
         when(mockElement.ownText()).thenReturn(expected);
 
@@ -183,6 +183,7 @@ public class FinnScraperTest {
         Document mockDocument = mock(Document.class);
         Element mockElement = mock(Element.class);
         Element mockElementFirstElement = mock(Element.class);
+
         Elements mockElements = new Elements(List.of(mockElement));
 
         String deadlineText = "12.03.2038";
@@ -194,10 +195,11 @@ public class FinnScraperTest {
 
         when(mockElement.firstElementChild()).thenReturn(mockElementFirstElement);
 
-        when(mockElementFirstElement.ownText()).thenReturn("frist");
+        when(mockElementFirstElement.hasText()).thenReturn(true);
 
+        when(mockElement.ownText()).thenReturn("frist");
 
-        when(mockElement.ownText()).thenReturn(deadlineText);
+        when(mockElementFirstElement.ownText()).thenReturn(deadlineText);
 
         // Then
         LocalDate actual = scraper.extractDeadlineForJobPostFromDoc(mockDocument);
@@ -211,21 +213,18 @@ public class FinnScraperTest {
         // Given
         Document mockDocument = mock(Document.class);
         Element mockElement = mock(Element.class);
-        Element mockSiblingElement = mock(Element.class);
-        Elements mockElements = new Elements(List.of(mockElement, mockElement, mockElement));
 
         // When
-        when(scraper.getElementsFromXPath(mockDocument, "//section[@class='panel']/h2[@class='u-t3']")).thenReturn(mockElements);
-        when(mockElement.ownText()).thenReturn("Nøkkelord");
-        when(mockElement.parent()).thenReturn(mockSiblingElement);
-        when(mockSiblingElement.lastElementChild()).thenReturn(mockSiblingElement);
-        when(mockSiblingElement.lastElementChild().ownText())
-                .thenReturn("Lærer   , student,   heltid    ");
+        when(scraper.getElementFromCssQuery(mockDocument, "section > h2.t3 + p"))
+                .thenReturn(mockElement);
+        when(mockElement.hasText()).thenReturn(true);
+        when(mockElement.ownText()).thenReturn("Lærer   , student,   heltid    ");
 
         // Then
         Set<String> expected = scraper.extractTagsForJobPostFromDoc(mockDocument);
 
         Assertions.assertFalse(expected.isEmpty());
+        Assertions.assertEquals(3, expected.size());
     }
 
     @Test

@@ -63,22 +63,15 @@ public final class FinnScraper extends BaseWebScraper {
 
     @Override
     String extractCompanyNameForJobPostFromDoc(Document doc) {
-        Elements elements = this.getElementsFromXPath(doc, "//ul/li");
-        if (elements.isEmpty()) {
-            logger.warning("Elements list was empty, could not get company name for job post at " + doc.location());
-            return null;
-        }
+        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
+                .setXPath("/html/body/main/div[2]/div[2]/div/section[2]/div/p")
+                .build();
 
-        for (Element element : elements) {
-            Element firstElementChild = element.firstElementChild();
-            boolean isLiElementFrist = firstElementChild != null &&
-                    firstElementChild
-                            .ownText()
-                            .replaceAll(":", "")
-                            .equalsIgnoreCase("arbeidsgiver");
-            if (isLiElementFrist) {
-                return element.ownText();
-            }
+        Element element = this.retrieveFirstElement(searchQuery);
+
+        String companyName = element.ownText();
+        if (companyName != null) {
+            return companyName;
         }
 
         throw new NullPointerException("Company name was null from : " + doc.location());
@@ -123,13 +116,11 @@ public final class FinnScraper extends BaseWebScraper {
 
         for (Element element : elements) {
             Element firstElementChild = element.firstElementChild();
-            boolean isLiElementFrist = firstElementChild != null &&
-                    firstElementChild
-                            .ownText()
-                            .replaceAll(":", "")
-                            .equalsIgnoreCase("frist");
-            if (isLiElementFrist) {
-                String dateAsText = element.ownText();
+            boolean hasChild = firstElementChild != null &&
+                    element.ownText().equalsIgnoreCase("frist") &&
+                    firstElementChild.hasText();
+            if (hasChild) {
+                String dateAsText = firstElementChild.ownText();
                 return DateUtils.parseDeadline(dateAsText);
             }
         }
@@ -140,19 +131,18 @@ public final class FinnScraper extends BaseWebScraper {
 
     @Override
     Set<String> extractTagsForJobPostFromDoc(Document doc) {
-        Elements h2Elements = this.getElementsFromXPath(doc, "//section[@class='panel']/h2[@class='u-t3']");
+        Element keywordElement = this.getElementFromCssQuery(doc, "section > h2.t3 + p");
 
-        for (Element h2Element : h2Elements) {
-            if (StringUtils.removeWhitespace(h2Element.ownText()).equalsIgnoreCase("Nøkkelord")) {
-                Element parentElement = h2Element.parent();
-
-                String tagString = parentElement.lastElementChild().ownText().replaceAll(" ", "");
-                String fullStringTag = StringUtils.removeTrailingComma(tagString);
-                String[] tags = fullStringTag.split(",");
-                return Set.copyOf(Arrays.asList(tags));
-            }
+        if (keywordElement == null || !keywordElement.hasText()) {
+            return Collections.emptySet();
         }
-        return Collections.emptySet();
+
+        String tagString = keywordElement.ownText().replaceAll(" ", "");
+
+        String fullStringTag = StringUtils.removeTrailingComma(tagString);
+        assert fullStringTag != null;
+        String[] tags = fullStringTag.split(",");
+        return Set.copyOf(Arrays.asList(tags));
     }
 
     @Override
