@@ -301,7 +301,8 @@ public sealed abstract class BaseWebScraper
                 .map(jobPostElement -> buildJobPost(url, jobPostElement))
                 .filter(Objects::nonNull)
                 .peek(jobPost -> {
-                    if (Argument.getValue(Argument.DEBUG).equalsIgnoreCase("yes")){
+                    String debugArgument = Argument.getValue(Argument.DEBUG);
+                    if (debugArgument != null && debugArgument.equalsIgnoreCase("yes")){
                        logger.info(jobPost.toString());
                     }
                 })
