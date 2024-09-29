@@ -64,7 +64,7 @@ public final class FinnScraper extends BaseWebScraper {
     @Override
     String extractCompanyNameForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXPath("/html/body/main/div[2]/div[2]/div/section[2]/div/p")
+                .setXPath("/html/body/main/div[2]/article/section[1]/section[2]/div/p")
                 .build();
 
         Element element = this.retrieveFirstElement(searchQuery);
@@ -155,7 +155,7 @@ public final class FinnScraper extends BaseWebScraper {
         // the elements own text as key. Only do if the value element have
         // the required class
 
-        String XPath = "//ul/li";
+        String XPath = "//ul[@class='space-y-10 ']/li";
         Elements elements = getElementsFromXPath(doc, XPath);
         if (elements.isEmpty()) {
             logger.severe("Elements at " + XPath + " were empty");
@@ -163,16 +163,28 @@ public final class FinnScraper extends BaseWebScraper {
         }
 
         for (Element elementInDoc : elements) {
-            if (elementInDoc.tagName().equalsIgnoreCase("li")) {
-                Element currentItemHeader = elementInDoc.firstElementChild();
-                if (currentItemHeader == null) {
+
+            Elements children = elementInDoc.children();
+
+            for (Element currentItemHeader : children) {
+                if (!currentItemHeader.tagName().equalsIgnoreCase("span")) {
                     continue;
                 }
 
-                String elementsOwnText = elementInDoc.ownText();
+                StringJoiner siblingElementsText = new StringJoiner(", ");
 
-                if (StringUtils.isEmpty(elementsOwnText)) {
-                    continue;
+                currentItemHeader.siblingElements().forEach(element -> siblingElementsText.add(element.ownText()));
+
+                int childrenCount = currentItemHeader.siblingElements().size();
+
+                String elementsOwnText;
+
+                if (childrenCount == 0 && currentItemHeader.parent() != null) {
+                    elementsOwnText = siblingElementsText + currentItemHeader.parent().ownText();
+                } else if (childrenCount == 1 && currentItemHeader.parent() != null) {
+                    elementsOwnText = siblingElementsText + currentItemHeader.parent().ownText();
+                } else {
+                    elementsOwnText = siblingElementsText.toString();
                 }
 
                 String currentItemHeaderText = retrieveProperDefinitionName(currentItemHeader.ownText());
@@ -184,7 +196,7 @@ public final class FinnScraper extends BaseWebScraper {
                 Set<String> definitions = definitionMap.getOrDefault(currentItemHeaderText, new HashSet<>());
 
                 String value = retrieveCorrectValueForKey(currentItemHeaderText,
-                        StringUtils.removeTrailingComma(elementsOwnText));
+                    StringUtils.removeTrailingComma(elementsOwnText));
 
                 definitions.add(value);
                 definitionMap.put(currentItemHeaderText, definitions);

@@ -88,4 +88,23 @@ public class StringUtils {
         return str;
     }
 
+    /**
+     * Checks if a string consists of digits only.
+     * Only works for positive numbers.
+     * @param input is the string we are checking
+     * @return true if positive number else false
+     */
+    public static boolean isPositiveNumber(String input){
+        if (input == null || input.isEmpty()){
+            return false;
+        }
+
+        for (int i = 0; i < input.length(); i++){
+            if (!Character.isDigit(input.charAt(i))){
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

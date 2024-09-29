@@ -8,11 +8,12 @@ import java.util.Map;
 public enum Argument {
 
     HELP("--help", "--h", List.of("Display help")),
+    DEBUG("--debug", "-b", List.of("Debug application yes/no (default)")),
     IP("--ip", "--ip", List.of("Specify the IP address")),
     PORT("--port", "--p", List.of("Specify the port number")),
     PATH("--path", "--ph", List.of("Specify the path")),
     REQUEST_PARAM("--request-param", "--rp", List.of("Specify the request parameter")),
-    DISABLE_REST_CLIENT("--disable-rest-client", "--drc", List.of("Disable the REST client")),
+    DISABLE_REST_CLIENT("--disable-rest-client", "--drc", List.of("Disable the REST client yes/no (default)")),
     START_PAGE("--start-page", "--sp", List.of("All scrapers will start at the given page")),
     DISABLED_SCRAPERS("--disabled-scrapers", "--ds",
             List.of("Enter a comma separated list of scrapers you wish to disable.",

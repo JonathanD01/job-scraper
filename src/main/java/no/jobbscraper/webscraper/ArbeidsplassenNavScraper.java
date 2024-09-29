@@ -36,9 +36,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
 
     @Override
     String extractUrlForJobPostFromElement(String url, Element element) {
-        // TODO Why is sibling index needed?
-        int elementSiblingIndex = element.elementSiblingIndex() + 1;
-        String XPath = String.format("//article[%s]/div[1]/div[1]/div/h3/a", elementSiblingIndex);
+        String XPath = "//a[@class='navds-link purple-when-visited navds-link--action']";
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(url, element)
                 .setXPath(XPath)
                 .attributeToReturn("abs:href")
@@ -62,7 +60,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
     @Override
     String extractTitleForJobPostFromElement(String url, Element element) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(url, element)
-                .setCssQuery("h3.overflow-wrap-anywhere.navds-heading.navds-heading--small > a.navds-link.navds-link--action")
+                .setCssQuery("a.navds-link.purple-when-visited.navds-link--action")
                 .text()
                 .setRequiredAttributes(List.of("href"))
                 .build();
@@ -117,7 +115,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
     @Override
     LocalDate extractDeadlineForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXPath("/html/body/div/div/main/div/article/div/div[2]/div/dl/dd/p")
+                .setXPath("//div[@class='navds-stack flex-shrink-0 navds-vstack navds-stack-direction']/p[@class='navds-body-long navds-body-long--medium']")
                 .ownText()
                 .build();
 
@@ -140,7 +138,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
         // the elements own text as key. Only do if the value element have
         // the required class
 
-        String XPath = "/html/body/div/div/main/article/div/section[2]/dl";
+        String XPath = "/html/body/div/div/main/article/div/section[2]/dl//p";
         Elements elements = getElementsFromXPath(doc, XPath);
         if (elements.isEmpty()) {
             logger.severe("Elements " + XPath + " were empty");
@@ -151,6 +149,7 @@ public final class ArbeidsplassenNavScraper extends BaseWebScraper {
         for (Element elementInDoc : elements) {
             if (elementInDoc.hasClass("navds-label")) {
                 currentItemHeader = elementInDoc;
+                continue;
             }
 
             String elementsOwnText = elementInDoc.ownText();

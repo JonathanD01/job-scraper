@@ -95,13 +95,34 @@ public class Main {
                 argumentValue = Objects.requireNonNull(StringUtils.removeTrailingSlash(argumentValue))
                         .toLowerCase();
 
-                Argument.put(Argument.from(args[i]), argumentValue);
+                Argument argument = Argument.from(args[i]);
+
+                validateArgument(argument, argumentValue);
+
+                Argument.put(argument, argumentValue);
             }
         } catch (IndexOutOfBoundsException | IllegalArgumentException  e) {
             logger.severe("Please provide all flags...");
             System.exit(0);
         }
         logger.info("Running program with arguments -> " + Argument.getMap());
+    }
+
+    /**
+     * Helper function to validate certain arguments
+     * As of now it will check for the IP argument
+     * and make sure http is not included.
+     *
+     * If there is a validation error the program will exit.
+     * @param argument is the argument to validate
+     * @param argumentValue is the argument value to validate
+     */
+    private static void validateArgument(Argument argument, String argumentValue) {
+        if (argument.equals(Argument.IP) && argumentValue.startsWith("http")) {
+            System.out.println("Remove the http protocol from the ip");
+            logger.severe("Remove the http protocol from the ip");
+            System.exit(0);
+        }
     }
 
     /**

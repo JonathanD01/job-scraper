@@ -34,6 +34,7 @@ java -jar job-scraper-jar-with-dependencies.jar --drc no --ip 127.0.0.1 --p 8081
 | Name                  | Short name | Help                                                                                           |
 |-----------------------|------------|------------------------------------------------------------------------------------------------|
 | --help                | --h        | Display help                                                                                   |
+| --debug               | --b        | Debug application                                                                              |
 | --ip                  | --ip       | Specify the ip address                                                                         |
 | --port                | --p        | Specify the port number                                                                        |
 | --path                | --ph       | Specify the path                                                                               |

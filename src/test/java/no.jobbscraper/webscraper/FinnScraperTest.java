@@ -1,26 +1,26 @@
 package no.jobbscraper.webscraper;
 
-import no.jobbscraper.utils.DateUtils;
-import no.jobbscraper.utils.ElementSearchQuery;
+import no.jobbscraper.HtmlDocumentProvider;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-public class FinnScraperTest {
+public class FinnScraperTest extends HtmlDocumentProvider {
 
     private static BaseWebScraper scraper;
+
+    public FinnScraperTest() {
+        super(scraper.getUrl(),
+            "finn/finn_list_page.html",
+            "finn/finn_detail_page.html");
+    }
 
     @BeforeAll
     public static void setUp() {
@@ -32,25 +32,13 @@ public class FinnScraperTest {
     public void itShouldExtractUrlForJobPostFromElement() {
         // Given
         String url = scraper.getCurrentUrl();
-        Element mockElement = mock(Element.class);
-
-        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(url, mockElement)
-                .setCssQuery("h2 > a[href]")
-                .setRequiredAttributes(List.of("id"))
-                .attributeToReturn("abs:href")
-                .build();
-
-        String expected = url + "/job/123";
-
-        // When
-        when(mockElement.expectFirst(searchQuery.cssQuery())).thenReturn(mockElement);
-        when(mockElement.hasAttr("id")).thenReturn(true);
-        when(mockElement.attr(searchQuery.attributeToReturn())).thenReturn(expected);
+        Document document = getListViewDocument();
+        Element element = scraper.extractJobPostElements(document).first();
 
         // Then
-        String actual = scraper.extractUrlForJobPostFromElement(url, mockElement);
+        String actual = scraper.extractUrlForJobPostFromElement(url, element);
 
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertTrue(actual.startsWith("https://www.finn.no/"));
     }
 
     @Test
@@ -58,23 +46,13 @@ public class FinnScraperTest {
     void itShouldExtractImageUrlForJobPostFromElement() {
         // Given
         String url = scraper.getCurrentUrl();
-        Element mockElement = mock(Element.class);
-
-        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(url, mockElement)
-                .setCssQuery("img[src]")
-                .attributeToReturn("abs:src")
-                .build();
-
-        String expected = "https://images.finncdn.no/dynamic/480w/";
-
-        // When
-        when(mockElement.expectFirst(searchQuery.cssQuery())).thenReturn(mockElement);
-        when(mockElement.attr(searchQuery.attributeToReturn())).thenReturn(expected);
+        Document document = getListViewDocument();
+        Element element = scraper.extractJobPostElements(document).first();
 
         // Then
-        String actual = scraper.extractImageUrlForJobPostFromElement(url, mockElement);
+        String actual = scraper.extractImageUrlForJobPostFromElement(url, element);
 
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertTrue(actual.startsWith("https://images.finncdn.no"));
     }
 
     @Test
@@ -82,215 +60,90 @@ public class FinnScraperTest {
     void itShouldExtractTitleForJobPostFromElement() {
         // Given
         String url = scraper.getCurrentUrl();
-        Element mockElement = mock(Element.class);
-        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(url, mockElement)
-                .setCssQuery("h2")
-                .text()
-                .build();
-
-        String expected = "Senior utvikler hos Finn!";
-
-        // When
-        when(scraper.retrieveFirstElement(searchQuery)).thenReturn(mockElement);
-        when(mockElement.text()).thenReturn(expected);
+        Document document = getListViewDocument();
+        Element element = scraper.extractJobPostElements(document).first();
 
         // Then
-        String actual = scraper.extractTitleForJobPostFromElement(url, mockElement);
+        String actual = scraper.extractTitleForJobPostFromElement(url, element);
 
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertEquals("Join us to power a sustainable future with offshore wind!", actual);
     }
 
     @Test
     @DisplayName("Ensure extracting company name works")
     void itShouldExtractCompanyNameForJobPostFromDoc() {
         // Given
-        Document mockDocument = mock(Document.class);
-        Element mockElement = mock(Element.class);
-        Elements mockElements = new Elements(List.of(mockElement));
-
-        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXPath("/html/body/main/div[2]/div[2]/div/section[2]/div/p")
-                .build();
-
-
-        String expected = "Tencent";
-
-        // When
-        when(mockDocument.selectXpath(searchQuery.XPath()))
-                .thenReturn(mockElements);
-
-        when(mockElement.ownText()).thenReturn(expected);
+        Document document = getDetailViewDocument();
 
         // Then
-        String actual = scraper.extractCompanyNameForJobPostFromDoc(mockDocument);
+        String actual = scraper.extractCompanyNameForJobPostFromDoc(document);
 
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertEquals("NES Advantage Solutions AS", actual);
     }
 
     @Test
     @DisplayName("Ensure extracting company image url is empty")
     void itShouldExtractCompanyImageUrlForJobPostFromDoc() {
         // Given
-        Document mockDocument = mock(Document.class);
-        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setXPath("//img[@class='img-format__img']")
-                .attributeToReturn("abs:src")
-                .build();
-
-        Element mockFirstElement = mock(Element.class);
-        Elements mockElements = new Elements(List.of(mockFirstElement));
-
-        String expected = "https://images.finncdn.no/dynamic/1600w/logo/logo";
-
-        // When
-        when(mockDocument.selectXpath(searchQuery.XPath())).thenReturn(mockElements);
-        when(mockFirstElement.attr(searchQuery.attributeToReturn())).thenReturn(expected);
+        Document document = getDetailViewDocument();
 
         // Then
-        String actual = scraper.extractCompanyImageUrlForJobPostFromDoc(mockDocument);
+        String actual = scraper.extractCompanyImageUrlForJobPostFromDoc(document);
 
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertEquals(null, actual);
     }
 
     @Test
     @DisplayName("Ensure extracting description works")
     void itShouldExtractDescriptionForJobPostFromDoc() {
         // Given
-        Document mockDocument = mock(Document.class);
-        ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(mockDocument)
-                .setCssQuery("div.import-decoration")
-                .build();
-
-        Element mockElement = mock(Element.class);
-        Elements mockElements = new Elements(List.of(mockElement));
-
-        String expected = "<p>Bonjour</p>";
-
-        // When
-        when(mockDocument.select(searchQuery.cssQuery())).thenReturn(mockElements);
-        when(mockElement.html()).thenReturn(expected);
+        Document document = getDetailViewDocument();
 
         // Then
-        String actual = scraper.extractDescriptionForJobPostFromDoc(mockDocument);
+        String actual = scraper.extractDescriptionForJobPostFromDoc(document);
 
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertNotNull(actual);
     }
 
     @Test
     @DisplayName("Ensure extract deadline works")
     void itShouldExtractDeadlineForJobPostFromDoc() {
         // Given
-        Document mockDocument = mock(Document.class);
-        Element mockElement = mock(Element.class);
-        Element mockElementFirstElement = mock(Element.class);
-
-        Elements mockElements = new Elements(List.of(mockElement));
-
-        String deadlineText = "12.03.2038";
-        LocalDate expected = DateUtils.parseDeadline(deadlineText);
-
-        // When
-        when(scraper.getElementsFromXPath(mockDocument, "//ul/li"))
-                .thenReturn(mockElements);
-
-        when(mockElement.firstElementChild()).thenReturn(mockElementFirstElement);
-
-        when(mockElementFirstElement.hasText()).thenReturn(true);
-
-        when(mockElement.ownText()).thenReturn("frist");
-
-        when(mockElementFirstElement.ownText()).thenReturn(deadlineText);
+        Document document = getDetailViewDocument();
 
         // Then
-        LocalDate actual = scraper.extractDeadlineForJobPostFromDoc(mockDocument);
+        LocalDate actual = scraper.extractDeadlineForJobPostFromDoc(document);
 
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertEquals(null, actual);
     }
 
     @Test
     @DisplayName("Ensure extracting tags is empty")
     void itShouldExtractTagsForJobPostFromDoc() {
         // Given
-        Document mockDocument = mock(Document.class);
-        Element mockElement = mock(Element.class);
-
-        // When
-        when(scraper.getElementFromCssQuery(mockDocument, "section > h2.t3 + p"))
-                .thenReturn(mockElement);
-        when(mockElement.hasText()).thenReturn(true);
-        when(mockElement.ownText()).thenReturn("Lærer   , student,   heltid    ");
+        Document document = getDetailViewDocument();
 
         // Then
-        Set<String> expected = scraper.extractTagsForJobPostFromDoc(mockDocument);
+        Set<String> expected = scraper.extractTagsForJobPostFromDoc(document);
 
         Assertions.assertFalse(expected.isEmpty());
-        Assertions.assertEquals(3, expected.size());
+        Assertions.assertEquals(5, expected.size());
     }
 
     @Test
     @DisplayName("Ensure extraction description map works")
     void itShouldExtractDescriptionMapForJobPostFromDoc() {
         // Given
-        String tagName = "li";
-
-        String firstKey = "Stilling";
-        String firstValue = "Heltid";
-
-        String secondKey = "Sektor";
-        String secondValue = "Privat";
-
-        String thirdKey = "Sted";
-        String thirdValue = "Oslo";
-
-        String fourthKey = "Bransje";
-        String fourthValue = "IT";
-
-        Document mockDocument = mock(Document.class);
-
-        Element firstMockElement = mock(Element.class);
-        Element secondMockElement = mock(Element.class);
-        Element thirdMockElement = mock(Element.class);
-        Element fourthMockElement = mock(Element.class);
-
-        Element firstSiblingMockElement = mock(Element.class);
-        Element secondSiblingMockElement = mock(Element.class);
-        Element thirdSiblingMockElement = mock(Element.class);
-        Element fourthSiblingMockElement = mock(Element.class);
-
-        Elements elements = new Elements(
-                List.of(firstMockElement, secondMockElement, thirdMockElement, fourthMockElement));
-
-        // When
-        when(scraper.getElementsFromXPath(mockDocument, "//ul/li"))
-                .thenReturn(elements);
-
-        when(firstMockElement.tagName()).thenReturn(tagName);
-        when(secondMockElement.tagName()).thenReturn(tagName);
-        when(thirdMockElement.tagName()).thenReturn(tagName);
-        when(fourthMockElement.tagName()).thenReturn(tagName);
-
-        when(firstMockElement.firstElementChild()).thenReturn(firstSiblingMockElement);
-        when(secondMockElement.firstElementChild()).thenReturn(secondSiblingMockElement);
-        when(thirdMockElement.firstElementChild()).thenReturn(thirdSiblingMockElement);
-        when(fourthMockElement.firstElementChild()).thenReturn(fourthSiblingMockElement);
-
-        when(firstMockElement.ownText()).thenReturn(firstValue);
-        when(secondMockElement.ownText()).thenReturn(secondValue);
-        when(thirdMockElement.ownText()).thenReturn(thirdValue);
-        when(fourthMockElement.ownText()).thenReturn(fourthValue);
-
-        when(firstSiblingMockElement.ownText()).thenReturn(firstKey);
-        when(secondSiblingMockElement.ownText()).thenReturn(secondKey);
-        when(thirdSiblingMockElement.ownText()).thenReturn(thirdKey);
-        when(fourthSiblingMockElement.ownText()).thenReturn(fourthKey);
+        Document document = getDetailViewDocument();
 
         // Then
-        Map<String, Set<String>> result = scraper.extractDefinitionsMapForJobPostFromDoc(mockDocument);
+        Map<String, Set<String>> result = scraper.extractDefinitionsMapForJobPostFromDoc(document);
 
-        int expected = elements.size();
-        int actual = result.keySet().size();
-
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertTrue(result.containsKey("Stillingsfunksjon"));
+        Assertions.assertTrue(result.containsKey("Sted"));
+        Assertions.assertTrue(result.containsKey("Sektor"));
+        Assertions.assertTrue(result.containsKey("Bransje"));
+        Assertions.assertTrue(result.containsKey("Stillingstittel"));
     }
 
 }

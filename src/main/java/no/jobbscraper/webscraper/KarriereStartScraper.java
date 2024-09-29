@@ -100,13 +100,22 @@ public final class KarriereStartScraper extends BaseWebScraper {
     @Override
     String extractDescriptionForJobPostFromDoc(Document doc) {
         ElementSearchQuery searchQuery = new ElementSearchQuery.Builder(doc)
-                .setXPath("//div[@class='description_cnt--pb20 dual-bullet-list p_fix']")
+                .setXPath("//div[@class='jobad-info-block dual-bullet-list p_fix']")
                 .html()
                 .build();
 
         String retrievedDescription = retrieveResultFromSearchQuery(searchQuery);
 
         if (retrievedDescription == null) {
+            searchQuery = new ElementSearchQuery.Builder(doc)
+                .setXPath("//div[@class='description_cnt']")
+                .html()
+                .build();
+
+            retrievedDescription = retrieveResultFromSearchQuery(searchQuery);
+        }
+
+        if (retrievedDescription == null){
             throw new NullPointerException("Job description was null from: " + doc.location());
         }
 
@@ -141,35 +150,48 @@ public final class KarriereStartScraper extends BaseWebScraper {
         // the elements own text as key. Only do if the value element have
         // the required class
 
-        String cssQuery = "div.concrete_facta_item > div";
-        Elements elements = getElementsFromCssQuery(doc, cssQuery);
-        if (elements.isEmpty()) {
-            logger.severe("Elements at " + cssQuery + " were empty");
+        Elements thElements = getElementsFromXPath(doc, "//table/tbody/tr/th");
+        Elements spanElements = getElementsFromXPath(doc, "//table/tbody/tr/td/span");
+
+
+        if (thElements.isEmpty()) {
+            logger.severe("Elements at //table/tbody/tr/th were empty");
             return definitionMap;
         }
 
-        Element currentItemHeader = null;
-        for (Element elementInDoc : elements) {
-            if (elementInDoc.hasClass("item_header")) {
-                currentItemHeader = elementInDoc;
+        if (spanElements.isEmpty()){
+            logger.severe("Elements at //table/tbody/tr/td were empty");
+            return definitionMap;
+        }
+
+        int counter = -1;
+        for (Element thElement : thElements) {
+            counter += 1;
+
+            Element spanElement = spanElements.get(counter);
+
+            String spanText = null;
+            if (spanElement.hasText()){
+                spanText = spanElement.text();
+            } else if (!spanElement.children().isEmpty()){
+                Element firstChild = spanElement.children().getFirst();
+                spanText = firstChild.text();
             }
 
-            String elementsOwnText = elementInDoc.text();
-
-            if (Objects.isNull(currentItemHeader) || !elementInDoc.hasClass("item_cnt")) {
+            if (spanText == null) {
                 continue;
             }
 
-            String currentItemHeaderText = retrieveProperDefinitionName(currentItemHeader.text());
+            String currentItemHeaderText = retrieveProperDefinitionName(thElement.wholeText());
 
-            if (Objects.isNull(currentItemHeaderText) || !elementInDoc.hasClass("item_cnt")) {
+            if (Objects.isNull(currentItemHeaderText)) {
                 continue;
             }
 
             Set<String> definitions = definitionMap.getOrDefault(currentItemHeaderText, new HashSet<>());
 
             String value = retrieveCorrectValueForKey(currentItemHeaderText,
-                    StringUtils.removeTrailingComma(elementsOwnText));
+                    StringUtils.removeTrailingComma(spanText));
             definitions.add(value);
             definitionMap.put(currentItemHeaderText, definitions);
         }

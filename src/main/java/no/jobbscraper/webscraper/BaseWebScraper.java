@@ -57,11 +57,13 @@ public sealed abstract class BaseWebScraper
     protected static final BaseRestApiClient apiClient = BaseRestApiClient.getInstance(false);
     private final static int CONNECT_TRIES = 3;
     private final static int WAIT_BEFORE_RECONNECT_MILLIS = 5000;
+    private final static int ALLOWED_FAILED_ATTEMPTS = 5;
     private final String name;
     private final String url;
     private final String urlWithPageQuery;
     private final String XPath;
     private final String fullIp;
+    private int failedAttempts;
     private int page;
     private int maxPage;
     private boolean continueScan;
@@ -81,6 +83,7 @@ public sealed abstract class BaseWebScraper
         this.XPath = XPath;
         this.fullIp = Argument.getValue(Argument.IP) +
                 (Argument.getValue(Argument.PORT) == null ? "" : ":" + Argument.getValue(Argument.PORT));
+        this.failedAttempts = 0;
         this.page = 1;
         this.maxPage = 0;
         this.continueScan = true;
@@ -90,7 +93,7 @@ public sealed abstract class BaseWebScraper
     public void scan() {
         // Check if scraper is disabled
         if (isScraperDisabled()) {
-            logger.info("Scraper " + getClass().getName() + " is disabled...");
+            logger.info("Scraper " + this.name + " is disabled...");
             return;
         }
 
@@ -101,6 +104,14 @@ public sealed abstract class BaseWebScraper
             scrape(getCurrentUrl());
             setPage(page + 1);
         }
+    }
+
+    /**
+     * Returns the url of the website to scrape
+     * @return the url of the website to scrape
+     */
+    protected String getUrl(){
+        return this.url;
     }
 
     /**
@@ -168,7 +179,7 @@ public sealed abstract class BaseWebScraper
         // Only stop scan if url is main and not a "detail page"
         if (Objects.isNull(doc) && url.equalsIgnoreCase(getCurrentUrl())) {
             continueScan = false;
-            logger.warning( "Stopping scan after " + CONNECT_TRIES + " tries for " + getClass().getSimpleName());
+            logger.warning( "Stopping scan after " + CONNECT_TRIES + " tries for " + this.name);
             return null;
         }
 
@@ -235,6 +246,17 @@ public sealed abstract class BaseWebScraper
     }
 
     /**
+     * Extracts job post elements from the given document using XPath.
+     *
+     * @param doc   The document containing the job post elements.
+     * @return      The extracted job post elements.
+     */
+    protected Elements extractJobPostElements(Document doc) {
+        // XPath value represents the job posting "cards"
+        return doc.selectXpath(XPath);
+    }
+
+    /**
      * Scrapes data from a website.
      *
      * @param url url to scrape
@@ -251,6 +273,7 @@ public sealed abstract class BaseWebScraper
         Elements jobPostElements = extractJobPostElements(doc);
         if (jobPostElements.isEmpty()) {
             logger.warning("Got no job post elements from " + url);
+            handleFailedAttempt();
             return;
         }
 
@@ -267,17 +290,6 @@ public sealed abstract class BaseWebScraper
     }
 
     /**
-     * Extracts job post elements from the given document using XPath.
-     *
-     * @param doc   The document containing the job post elements.
-     * @return      The extracted job post elements.
-     */
-    private Elements extractJobPostElements(Document doc) {
-        // XPath value represents the job posting "cards"
-        return doc.selectXpath(XPath);
-    }
-
-    /**
      * Builds a list of valid job posts from the given job post elements.
      *
      * @param url               The URL of the webpage from which the job post elements were extracted.
@@ -288,6 +300,11 @@ public sealed abstract class BaseWebScraper
         return jobPostElements.stream()
                 .map(jobPostElement -> buildJobPost(url, jobPostElement))
                 .filter(Objects::nonNull)
+                .peek(jobPost -> {
+                    if (Argument.getValue(Argument.DEBUG).equalsIgnoreCase("yes")){
+                       logger.info(jobPost.toString());
+                    }
+                })
                 .toList();
     }
 
@@ -298,7 +315,7 @@ public sealed abstract class BaseWebScraper
      * @param validJobPosts The number of valid job posts created.
      */
     private void logJobPostStatistics(int totalJobPosts, int validJobPosts) {
-        logger.info("[" + getClass().getSimpleName() + "] " +
+        logger.info("[" + this.name + "] " +
                 validJobPosts + "/" + totalJobPosts +
                 " job posts were successfully created");
     }
@@ -372,6 +389,8 @@ public sealed abstract class BaseWebScraper
             definitionMap.put("Sektor", Set.of("Ikke oppgitt"));
         }
 
+        validateDefinitionsMap(definitionMap,jobPostUrl);
+
         return new JobPost.Builder(jobPostUrl, imageUrl, title)
                 .setCompanyName(companyName)
                 .setCompanyImageUrl(companyImageUrl)
@@ -389,7 +408,7 @@ public sealed abstract class BaseWebScraper
             try {
                 page = Integer.parseInt(pageToStartAt);
                 this.setPage(page);
-                logger.info("Scraper " + getClass().getName() + " will start at page " + getPage());
+                logger.info("Scraper " + this.name + " will start at page " + getPage());
             } catch (NumberFormatException e) {
                 logger.severe("Could not parse '" + pageToStartAt + "' to a number!");
                 System.exit(0);
@@ -408,6 +427,46 @@ public sealed abstract class BaseWebScraper
 
         return Arrays.stream(disabledWebsitesArray)
                 .anyMatch(name::equalsIgnoreCase);
+    }
+
+    /**
+     * Ensure the scraper stops after ALLOWED_FAILED_ATTEMPTS attempts
+     */
+    private void handleFailedAttempt() {
+        this.failedAttempts += 1;
+        if (this.failedAttempts >= ALLOWED_FAILED_ATTEMPTS) {
+            setContinueScan(false);
+            logger.severe(String.format("[%s] Stopped scanning due to %s/%s", this.name, failedAttempts, ALLOWED_FAILED_ATTEMPTS));
+        }
+    }
+
+    /**
+     * Validates the definitions of a job post
+     * If the value for a key is invalid (often short strings <= 2 length)
+     * it will log out a warning
+     * @param map is the job definitions map
+     */
+    private void validateDefinitionsMap(Map<String, Set<String>> map, String jobPostUrl) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, Set<String>> definitionEntry : map.entrySet()) {
+            for (String value : definitionEntry.getValue()) {
+                if (StringUtils.isPositiveNumber(value)) {
+                    continue;
+                }
+
+                if (value.length() <= 1) {
+                    stringBuilder
+                        .append(
+                            String
+                                .format("Key '%s' has possible invalid value '%s' Location %s",
+                                    definitionEntry.getKey(), value, jobPostUrl));
+                }
+            }
+        }
+
+        if (!stringBuilder.isEmpty()){
+            logger.warning(stringBuilder.toString());
+        }
     }
 
     /**
@@ -484,5 +543,4 @@ public sealed abstract class BaseWebScraper
      * @return      A map representing the description for the job post, or an empty map if not found.
      */
     abstract Map<String, Set<String>> extractDefinitionsMapForJobPostFromDoc(Document doc);
-
 }
